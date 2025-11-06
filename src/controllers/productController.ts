@@ -4,6 +4,7 @@
 import { Request, Response } from "express"
 import Product from "../model/ProductModel"
 import { Types } from "mongoose"
+import { createProductSchema, updatedProductSchema } from "../validators/productValidator"
 
 class ProductController {
   static getAllProducts = async (req: Request, res: Response): Promise<void | Response> => {
@@ -44,16 +45,27 @@ class ProductController {
       const { name, description, price, category, stock } = body
 
       if (!name || !description || !price || !category || !stock) {
-        return res.status(400).json({ message: "Datos invalidos" })
+        return res.status(400).json({ message: "Todos los campos son requeridos" })
       }
 
-      const newProduct = new Product({ name, description, price, category, stock })
+      // VALIDACIONES DE INPUT
+      // validar el tipo de data que recibo del front
+      // 1 - si para la validación creo el producto
+      // 2 - si no pasa la validación retorno una respuesta 400 al front
+
+      const validator = createProductSchema.safeParse(body)
+
+      if (!validator.success) {
+        return res.status(400).json({ success: false, error: validator.error.flatten().fieldErrors });
+      }
+
+      const newProduct = new Product(validator.data)
 
       await newProduct.save()
-      res.status(201).json(newProduct)
+      res.status(201).json({ succes: true, data: newProduct })
     } catch (e) {
       const error = e as Error
-      res.status(500).json({ error: error.message })
+      res.status(500).json({ success: false, error: error.message })
     }
   }
 
@@ -64,11 +76,13 @@ class ProductController {
 
       if (!Types.ObjectId.isValid(id)) res.status(400).json({ succes: false, error: "ID Inválido" })
 
-      const { name, description, price, category, stock } = body
+      const validator = updatedProductSchema.safeParse(body)
 
-      const updates = { name, description, price, category, stock }
+      if (!validator.success) {
+        return res.status(400).json({ success: false, error: validator.error.flatten().fieldErrors });
+      }
 
-      const updatedProduct = await Product.findByIdAndUpdate(id, updates, { new: true })
+      const updatedProduct = await Product.findByIdAndUpdate(id, validator.data, { new: true })
 
       if (!updatedProduct) {
         return res.status(404).json({ success: false, error: "Producto no encontrado" })
