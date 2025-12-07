@@ -20,9 +20,9 @@ class ProductController {
       if (minPrice || maxPrice) {
         filter.price = {}
         // maxPrice -> si tengo precio máximo quiero un objeto con un precio menor
-        if (minPrice) filter.price.$gte = minPrice
+        if (minPrice) filter.price.$gte = parseFloat(minPrice as string)
         // minPrice -> si tengo un precio mínimo quiero un objeto con un precio mas grande.
-        if (maxPrice) filter.price.$lte = maxPrice
+        if (maxPrice) filter.price.$lte = parseFloat(maxPrice as string)
       }
 
       const products = await Product.find(filter)
