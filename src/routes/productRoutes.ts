@@ -1,21 +1,43 @@
-// EL ROUTER VALIDA METODOS Y RUTAS PROPIAS DE LA ENTIDAD
+import { Router } from "express";
+import ProductController from "../controllers/productController";
+import authMiddleware from "../middleware/authMiddleware";
+import upload from "../middleware/uploadMiddleware";
 
-// GET http://localhost:3000/product
+// VALIDADORES
+import { createProductValidator, updateProductValidator } from "../validators/productValidator";
+import validationMiddleware from "../middleware/validationMiddleware";
 
-import { Router } from "express"
-import ProductController from "../controllers/productController"
-import authMiddleware from "../middleware/authMiddleware"
-import upload from "../middleware/uploadMiddleware"
+const productRouter = Router();
+productRouter.post("/", authMiddleware, upload.single("image"), ProductController.addProduct);
+productRouter.patch("/:id", authMiddleware, ProductController.updateProduct);
+productRouter.delete("/:id", authMiddleware, ProductController.deleteProduct);
 
-const productRouter = Router()
 
-// TODAS LAS PETICIONES QUE LLEGAN AL PRODUCTROUTER EMPIEZAN CON
-// POST http://localhost:3000/products/
+productRouter.get("/", ProductController.getAllProducts);
+productRouter.get("/:id", ProductController.getProduct);
 
-productRouter.get("/", ProductController.getAllProducts)
-productRouter.get("/:id", ProductController.getProduct)
-productRouter.post("/", authMiddleware, upload.single("image"), ProductController.addProduct)
-productRouter.patch("/:id", authMiddleware, ProductController.updateProduct)
-productRouter.delete("/:id", authMiddleware, ProductController.deleteProduct)
 
-export default productRouter
+productRouter.post(
+  "/",
+  authMiddleware,
+  upload.single("image"),
+  createProductValidator,
+  validationMiddleware,
+  ProductController.addProduct
+);
+
+productRouter.patch(
+  "/:id",
+  authMiddleware,
+  updateProductValidator,
+  validationMiddleware,
+  ProductController.updateProduct
+);
+
+productRouter.delete(
+  "/:id",
+  authMiddleware,
+  ProductController.deleteProduct
+);
+
+export default productRouter;

@@ -1,12 +1,10 @@
-import { Router } from "express"
-import AuthController from "../controllers/authController"
+import { Router } from "express";
+import AuthController from "../controllers/authController";
+import { authLimiter } from "../middleware/rateLimitMiddleware";
 
+const authRouter = Router();
 
-const authRouter = Router()
+authRouter.post("/register", authLimiter, AuthController.register);
+authRouter.post("/login", authLimiter, AuthController.login);
 
-// http://localhost:3000/auth/register
-authRouter.post("/register", AuthController.register)
-// http://localhost:3000/auth/login
-authRouter.post("/login", AuthController.login)
-
-export default authRouter
+export default authRouter;
